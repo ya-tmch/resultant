@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <title><%- title %></title>
+    <style>
+        table td {
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdn.polyfill.io/v2/polyfill.js?features=es6"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.13/dist/vue.min.js"></script>
+
+<script id="template" type="text/x-template">
+    <div class="container p-2">
+        <h1>Валюты</h1>
+        <div class="row">
+            <div class="col-9">
+                <table class="table table-bordered">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th>Название</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template v-if="items">
+                        <tr v-for="i in items">
+                            <td>
+                                {{ i.name }}
+                            </td>
+                            <td>
+                                {{ Number(i.price.amount).toFixed(2) }} {{ i.price.currency }}
+                            </td>
+                            <td>
+                                {{ i.volume }}
+                            </td>
+                        </tr>
+                    </template>
+                    <tr v-else>
+                        <td colspan="3">
+                            <p class="text-center">Загрузка...</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-3">
+                <form @submit.prevent="refresh">
+                    <button type="submit" :disabled="wait" class="btn btn-outline-dark btn-block">
+                        Обновить
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+    function check() {
+        "use strict";
+
+        try {
+            eval("var foo = (x)=>x+1");
+        } catch (e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    if (!check()) {
+        alert('Browser not supported')
+    }
+</script>
+<script>
+    new Vue({
+        el: '#root',
+        template: '#template',
+        created() {
+            this.fetchData()
+            setInterval(() => this.fetchData(), 15000)
+        },
+        data: {
+            wait: false,
+            items: null
+        },
+        methods: {
+            fetchData() {
+                this.wait = true
+
+                jQuery
+                    .get('/api/v1/stocks', (response) => this.items = response)
+                    .fail(() => alert("Ошибка"))
+                    .always(() => this.wait = false)
+            },
+            refresh() {
+                this.items = null
+                this.fetchData()
+            }
+        }
+    })
+</script>
+</body>
+</html>
